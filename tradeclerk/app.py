@@ -17,6 +17,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import __version__, context
 from .agent import SYSTEM_PROMPT, mock_agent, run_agent
+from .auth import configured_api_key, reject_unauthorized
 from .tools import list_leads, list_quotes
 
 logger = logging.getLogger("tradeclerk")
@@ -76,6 +77,8 @@ store = Store()
 async def lifespan(_app: FastAPI):
     if store.mock:
         logger.warning("未设置 OPENAI_API_KEY，使用 mock 模式（不调用模型，只演示 HTTP 接口）")
+    if not configured_api_key():
+        logger.warning("未设置 TRADECLERK_API_KEY，/v1 接口将返回 503")
     logger.info(
         "TradeClerk 服务已启动 version=%s model=%s mock=%s",
         __version__,
@@ -87,6 +90,10 @@ async def lifespan(_app: FastAPI):
 
 class AccessLogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        denied = reject_unauthorized(request)
+        if denied is not None:
+            logger.info("http method=%s path=%s status=%s", request.method, request.url.path, denied.status_code)
+            return denied
         start = time.perf_counter()
         response = await call_next(request)
         took = time.perf_counter() - start

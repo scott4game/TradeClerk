@@ -123,13 +123,20 @@
       <section class="card">
         <div class="row">
           <div>
+            <label>API key（Authorization: Bearer）</label>
+            <input id="apiKey" type="password" placeholder="TRADECLERK_API_KEY" autocomplete="off" />
+          </div>
+          <div>
             <label>buyer_id（演示里代替登录买家）</label>
             <input id="customerId" value="buyer_001" />
           </div>
+        </div>
+        <div class="row">
           <div>
             <label>session_id（空则服务端新建）</label>
             <input id="sessionId" placeholder="第一次发送后自动填入" />
           </div>
+          <div></div>
         </div>
         <div class="chat" id="chat"></div>
         <label>买家消息</label>
@@ -141,7 +148,7 @@
           <button type="button" class="chip" data-msg="Please have a salesman follow up. We are BrightMart, USA.">留给业务员</button>
         </div>
         <button id="send">发送到 /v1/chat</button>
-        <p class="hint">同一 session_id 会带上历史。buyer_001 能查 SHP-9001；buyer_002 查会返回 FORBIDDEN。</p>
+        <p class="hint">/v1 需要 API key。同一 session_id 会带上历史。buyer_001 能查 SHP-9001；buyer_002 查会返回 FORBIDDEN。</p>
       </section>
       <section class="card">
         <label>本次请求</label>
@@ -172,6 +179,12 @@
       });
     });
 
+    const apiKeyEl = document.getElementById("apiKey");
+    apiKeyEl.value = localStorage.getItem("tradeclerk_api_key") || "";
+    apiKeyEl.addEventListener("change", () => {
+      localStorage.setItem("tradeclerk_api_key", apiKeyEl.value.trim());
+    });
+
     sendBtn.addEventListener("click", async () => {
       const payload = {
         session_id: document.getElementById("sessionId").value.trim(),
@@ -180,13 +193,17 @@
       };
       if (!payload.message) return;
 
+      const apiKey = apiKeyEl.value.trim();
+      localStorage.setItem("tradeclerk_api_key", apiKey);
       reqEl.textContent = JSON.stringify(payload, null, 2);
       addBubble(payload.message, "user");
       sendBtn.disabled = true;
       try {
+        const headers = { "Content-Type": "application/json" };
+        if (apiKey) headers["Authorization"] = "Bearer " + apiKey;
         const res = await fetch("/v1/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload),
         });
         const data = await res.json();

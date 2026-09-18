@@ -23,6 +23,14 @@ ADDR=:8080 tradeclerk
 
 Open http://127.0.0.1:8080. Optional environment variables: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` (default `gpt-4o-mini`), `ADDR` (default `:8080`).
 
+`TRADECLERK_API_KEY` is required for `/v1/*`. Send it as `Authorization: Bearer <key>` or `X-API-Key`. `/` and `/health` stay public. If the key is unset, `/v1/*` returns 503.
+
+```bash
+export TRADECLERK_API_KEY=change-me
+curl -sS http://127.0.0.1:8080/v1/quotes \
+  -H "Authorization: Bearer $TRADECLERK_API_KEY"
+```
+
 ## License
 
 [FSL-1.1-ALv2](LICENSE.md) (Functional Source License 1.1).
