@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeClerk</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3f8;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #d7e2ee;
+      --accent: #0f4c81;
+      --accent-2: #c9a227;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    .lead { color: var(--muted); margin: 0 0 24px; line-height: 1.6; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    button {
+      background: var(--accent);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    button.chip {
+      background: #f8fafc;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    pre {
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      min-height: 180px;
+    }
+    .chat {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 220px;
+      max-height: 360px;
+      overflow: auto;
+      margin-bottom: 12px;
+    }
+    .bubble {
+      padding: 8px 10px;
+      border-radius: 10px;
+      max-width: 90%;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .user { align-self: flex-end; background: #dbeafe; }
+    .bot { align-self: flex-start; background: #e2e8f0; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .chip {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>TradeClerk</h1>
+    <p class="lead">
+      外贸销售 AI Agent，演示目录为宁波 Apex Lighting。真正对外的接口是 <code>POST /v1/chat</code>。
+      可询盘、报价、查贸易条款和出货；报价单见 <code>GET /v1/quotes</code>，跟进见 <code>GET /v1/leads</code>。
+    </p>
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <div>
+            <label>buyer_id（演示里代替登录买家）</label>
+            <input id="customerId" value="buyer_001" />
+          </div>
+          <div>
+            <label>session_id（空则服务端新建）</label>
+            <input id="sessionId" placeholder="第一次发送后自动填入" />
+          </div>
+        </div>
+        <div class="chat" id="chat"></div>
+        <label>买家消息</label>
+        <textarea id="message">Need CIF Los Angeles quote for 500pcs 150W high bay, and what's your payment term?</textarea>
+        <div class="chips">
+          <button type="button" class="chip" data-msg="Need CIF Los Angeles quote for 500pcs 150W high bay, and what's your payment term?">CIF 报价 + 付款</button>
+          <button type="button" class="chip" data-msg="Do you have 100W street lights? MOQ and certificates?">路灯目录</button>
+          <button type="button" class="chip" data-msg="Where is shipment SHP-9001?">查出货 SHP-9001</button>
+          <button type="button" class="chip" data-msg="Please have a salesman follow up. We are BrightMart, USA.">留给业务员</button>
+        </div>
+        <button id="send">发送到 /v1/chat</button>
+        <p class="hint">同一 session_id 会带上历史。buyer_001 能查 SHP-9001；buyer_002 查会返回 FORBIDDEN。</p>
+      </section>
+      <section class="card">
+        <label>本次请求</label>
+        <pre id="req">等待发送</pre>
+        <label style="margin-top:12px">本次响应</label>
+        <pre id="res">等待发送</pre>
+      </section>
+    </div>
+  </main>
+  <script>
+    const chat = document.getElementById("chat");
+    const reqEl = document.getElementById("req");
+    const resEl = document.getElementById("res");
+    const sendBtn = document.getElementById("send");
+    const messageEl = document.getElementById("message");
+
+    function addBubble(text, cls) {
+      const div = document.createElement("div");
+      div.className = "bubble " + cls;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    document.querySelectorAll(".chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        messageEl.value = btn.dataset.msg;
+      });
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      const payload = {
+        session_id: document.getElementById("sessionId").value.trim(),
+        customer_id: document.getElementById("customerId").value.trim() || "buyer_001",
+        message: messageEl.value.trim(),
+      };
+      if (!payload.message) return;
+
+      reqEl.textContent = JSON.stringify(payload, null, 2);
+      addBubble(payload.message, "user");
+      sendBtn.disabled = true;
+      try {
+        const res = await fetch("/v1/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        resEl.textContent = JSON.stringify(data, null, 2);
+        if (!res.ok) {
+          addBubble("服务错误: " + (data.error || res.status), "bot");
+          return;
+        }
+        document.getElementById("sessionId").value = data.session_id;
+        addBubble(data.reply, "bot");
+      } catch (err) {
+        resEl.textContent = String(err);
+        addBubble("请求失败: " + err, "bot");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

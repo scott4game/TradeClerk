@@ -1,0 +1,23 @@
+[project]
+name = "tradeclerk"
+version = "0.1.0"
+description = "Export sales AI agent for RFQ, quotation, trade terms, and shipment follow-up."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "LicenseRef-FSL-1.1-ALv2" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "openai>=1.50",
+    "pydantic>=2",
+]
+
+[project.scripts]
+tradeclerk = "tradeclerk.app:run"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["tradeclerk*"]
