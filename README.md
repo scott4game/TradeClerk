@@ -1,12 +1,12 @@
 # TradeClerk
 
-外贸销售 AI Agent：询盘、产品目录、报价、贸易条款、出货查询、业务员跟进。
+An export-sales AI agent for RFQs, product catalog, quotations, trade terms, shipment tracking, and sales follow-up.
 
-源码公开，便于客户审计；不允许把本软件作为竞品 SaaS / 托管服务对外出售。
+The source is public so customers can audit it. You may not offer this software as a competing hosted or SaaS product.
 
-## 运行
+## Run
 
-需要 Python 3.10+。未设置 `OPENAI_API_KEY` 时走 mock 模式（不调用大模型，只演示接口和工具）。
+Python 3.10+. Without `OPENAI_API_KEY`, the server runs in mock mode (no model calls; APIs and tools still work).
 
 ```bash
 python3 -m venv .venv
@@ -15,24 +15,24 @@ pip install -e .
 uvicorn tradeclerk.app:app --host 0.0.0.0 --port 8080
 ```
 
-或：
+Or:
 
 ```bash
 ADDR=:8080 tradeclerk
 ```
 
-打开 http://127.0.0.1:8080 。可选环境变量：`OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL`（默认 `gpt-4o-mini`）、`ADDR`（默认 `:8080`）。
+Open http://127.0.0.1:8080. Optional environment variables: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` (default `gpt-4o-mini`), `ADDR` (default `:8080`).
 
 ## License
 
-[FSL-1.1-ALv2](LICENSE.md)（Functional Source License 1.1，两年后转为 Apache-2.0）。
+[FSL-1.1-ALv2](LICENSE.md) (Functional Source License 1.1; converts to Apache-2.0 after two years).
 
-**可以：** 查看、修改、自用、非商用教学/研究；为已获授权的客户做实施交付。
+**Allowed:** view, modify, internal use, non-commercial education/research, and professional services for a licensee using the software under these terms.
 
-**不可以：** 把本软件（或实质相同功能）作为商业产品或云服务提供给他人。
+**Not allowed:** offering this software (or substantially the same functionality) to others as a commercial product or hosted service.
 
-**两年后：** 每一个已发布版本，自发布日起满两年，自动可按 Apache-2.0 使用。
+**After two years:** each published version may be used under Apache-2.0 starting on the second anniversary of its release.
 
-若要合法运营与本软件同类的托管服务，需另行取得商业许可。
+A separate commercial license is required to run a competing hosted service.
 
-发布到 GitHub 前，请把 `LICENSE.md` 里的版权人 `TradeClerk` 改成你的真实姓名或公司全称。
+Before publishing to GitHub, replace the copyright holder `TradeClerk` in `LICENSE.md` with your legal name or company name.
