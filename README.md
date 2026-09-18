@@ -25,13 +25,11 @@ Open http://127.0.0.1:8080. Optional environment variables: `OPENAI_API_KEY`, `O
 
 ## License
 
-[FSL-1.1-ALv2](LICENSE.md) (Functional Source License 1.1; converts to Apache-2.0 after two years).
+[FSL-1.1-ALv2](LICENSE.md) (Functional Source License 1.1).
 
 **Allowed:** view, modify, internal use, non-commercial education/research, and professional services for a licensee using the software under these terms.
 
 **Not allowed:** offering this software (or substantially the same functionality) to others as a commercial product or hosted service.
-
-**After two years:** each published version may be used under Apache-2.0 starting on the second anniversary of its release.
 
 A separate commercial license is required to run a competing hosted service.
 
